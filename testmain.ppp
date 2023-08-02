@@ -1,0 +1,10 @@
+l mainprint p
+p .mainprint
+.mainprint hello
+l define p
+.define Tester
+p .define
+l want s
+.want define .mainprint
+.define Whatchagoinon?
+ 
