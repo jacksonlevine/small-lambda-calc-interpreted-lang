@@ -6,11 +6,16 @@
 #include <functional>
 
 std::map<std::string, std::function<std::string(std::vector<std::string>)>> funcs;
-
 std::map<std::string, std::string> variables;
 
-void function_definitions() 
-{
+void function_definitions() {
+    funcs["concat"] = [](std::vector<std::string> args) {
+        std::string result;
+        for(auto& s : args) {
+            result += s;
+        }
+        return result;
+    };
     funcs["print"] = [](std::vector<std::string> args) {
         for(auto &s : args) {
             std::cout << s << std::endl;
@@ -54,82 +59,48 @@ void function_definitions()
     funcs["se"] = funcs["let"];
     funcs["s"] = funcs["let"];
 }
-
-std::string recurse_and_call_line(std::string line);
-
-int main(int argc, char *argv[])
-{
-    function_definitions();
-    if(argc < 2) {
-        std::cout << "No filename in arguments";
+std::string recurse_and_call_line(std::string line) {
+    std::istringstream line_stream(line);
+    std::string word;
+    std::vector<std::string> current_expression;
+    while(line_stream >> word)
+    {
+        if(word.front() == '(') 
+        {
+            int depth = std::count(word.begin(), word.end(), '(');
+            std::string inner_line = "";
+            inner_line += word;
+            while(depth != 0) {
+                line_stream >> word;
+                inner_line = (inner_line + " ") + word;
+                if(word.front() == '(') { depth += std::count(word.begin(), word.end(), '('); }
+                if(word.back() == ')') { depth -= std::count(word.begin(), word.end(), ')'); }
+            }
+            inner_line = inner_line.substr(1, inner_line.size()-2);
+            word = recurse_and_call_line(inner_line);
+        }
+        if(word.front() == '.') { word = variables[word.substr(1)]; }
+        if(word.front() == '"') {
+            std::string literal = "";
+            literal += word.substr(1);
+            char ch;
+            while (line_stream.get(ch) && ch != '"') { literal += ch; }
+            word = literal;
+        }
+        current_expression.push_back(word);
     }
-    std::string filename = argv[1];
-
-    std::ifstream file(filename);
+    std::string fname(current_expression[0]);
+    current_expression.erase(current_expression.begin());
+    return funcs[fname](current_expression);
+}
+int main(int argc, char *argv[]) {
+    function_definitions();
+    std::ifstream file(argv[1]);
     std::stringstream buf;
     buf << file.rdbuf();
-    
-    std::string code = buf.str();
-
-    std::istringstream stream(code);
+    std::istringstream stream(buf.str());
     std::string line;
     while(std::getline(stream, line)) {
         recurse_and_call_line(line);
     }
 }
-
-std::string recurse_and_call_line(std::string line)
-{
-    std::istringstream line_stream(line);
-    std::string word;
-    std::vector<std::string> current_expression;
-
-            while(line_stream >> word)
-            {
-
-                //Nested expressions
-
-                if(word.front() == '(') 
-                {
-                    int depth = std::count(word.begin(), word.end(), '(');
-                    std::string inner_line = "";
-                    inner_line += word;
-
-                    while(depth != 0) {
-                        line_stream >> word;
-                        inner_line = (inner_line + " ") + word;
-                        if(word.front() == '(') {
-                            depth += std::count(word.begin(), word.end(), '(');
-                        }
-                        if(word.back() == ')') {
-                            depth -= std::count(word.begin(), word.end(), ')');
-                        }
-                    }
-
-                    inner_line = inner_line.substr(1, inner_line.size()-2); //remove parentheses
-                    std::cout << "eval nest expr: ";
-                    std::cout << inner_line << std::endl;
-
-                    word = recurse_and_call_line(inner_line);
-                }
-
-                //Variable references
-
-                if(word.front() == '.') 
-                {
-                    word = variables[word.substr(1)];
-                }
-
-                //Add to expression
-
-                current_expression.push_back(word);
-            }
-
-    //We have the expression now
-    //Call the function
-    std::string fname(current_expression[0]);
-    current_expression.erase(current_expression.begin());
-    return funcs[fname](current_expression);
-    
-}
-
