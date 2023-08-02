@@ -1,0 +1,2 @@
+y.exe main
+pause

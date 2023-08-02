@@ -1,0 +1,11 @@
+s var 0
+s var (+ .var 1)
+print .var
+s var (+ .var 1)
+print .var
+s var (+ .var 1)
+print .var
+s var (+ .var 1)
+print .var
+s var (+ .var 1)
+print .var
