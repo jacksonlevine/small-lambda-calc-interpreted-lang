@@ -67,6 +67,7 @@ void function_definitions()
         }
         return std::string("");
     };
+    funcs["p"] = funcs["print"];
     funcs["set"] = funcs["let"];
     funcs["l"] = funcs["let"];
     funcs["le"] = funcs["let"];
@@ -80,6 +81,10 @@ std::function<std::string(void)> recurse_and_call_line(std::string line)
     std::vector<std::string> current_expression;
     while (line_stream >> word)
     {
+        if(word == ',')
+        {
+            
+        }
         if (word.front() == '(')
         {
             int depth = std::count(word.begin(), word.end(), '(');
