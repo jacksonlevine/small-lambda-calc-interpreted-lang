@@ -73,7 +73,7 @@ void function_definitions()
     funcs["se"] = funcs["let"];
     funcs["s"] = funcs["let"];
 }
-std::string recurse_and_call_line(std::string line)
+std::function<std::string(void)> recurse_and_call_line(std::string line)
 {
     std::istringstream line_stream(line);
     std::string word;
@@ -99,7 +99,7 @@ std::string recurse_and_call_line(std::string line)
                 }
             }
             inner_line = inner_line.substr(1, inner_line.size() - 2);
-            word = recurse_and_call_line(inner_line);
+            word = recurse_and_call_line(inner_line)();
         }
         if (word.front() == '.')
         {
@@ -120,7 +120,7 @@ std::string recurse_and_call_line(std::string line)
     }
     std::string fname(current_expression[0]);
     current_expression.erase(current_expression.begin());
-    return funcs[fname](current_expression);
+    return [fname, current_expression](){ return funcs[fname](current_expression); };
 }
 int main(int argc, char *argv[])
 {
@@ -132,6 +132,6 @@ int main(int argc, char *argv[])
     std::string line;
     while (std::getline(stream, line))
     {
-        recurse_and_call_line(line);
+        recurse_and_call_line(line)();
     }
 }
