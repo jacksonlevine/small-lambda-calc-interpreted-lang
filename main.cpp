@@ -175,13 +175,19 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
         {
             std::string literal = "";
             bool end = false;
-            if(word.back() != '"')
+
+            int count = std::count(word.begin(), word.end(), '"');
+            if(count >= 2)
             {
-                literal += word.substr(1);
-            } else {
-                literal += word.substr(1, word.size()-2);
                 end = true;
+                literal += word.substr(1, word.size() - 2);
+            } else {
+                literal += word.substr(1);
             }
+
+
+            
+
             
             char ch;
             while (line_stream.get(ch) && ch != '"' && !end)
