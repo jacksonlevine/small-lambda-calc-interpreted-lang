@@ -74,16 +74,68 @@ void function_definitions()
     funcs["se"] = funcs["let"];
     funcs["s"] = funcs["let"];
 }
-std::function<std::string(void)> recurse_and_call_line(std::string line)
+std::function<std::string(void)> recurse_and_call_line(std::string line, std::istringstream& full_stream)
 {
+    if(line.size() < 1)
+    {
+        return [](){ return std::string(""); };
+    }
     std::istringstream line_stream(line);
     std::string word;
     std::vector<std::string> current_expression;
     while (line_stream >> word)
     {
-        if(word == ',')
+        if(word.find('{') != std::string::npos)
         {
+            //std::cout << word;
+            //Then the whole expression has been a function declaration, we need to get all the lines
+
+            std::string nfname(current_expression[0]);
+            current_expression.erase(current_expression.begin());
+            std::vector<std::string> func_body;
+
+            std::string next_line;
+            int depth = 1;
+            while(std::getline(full_stream, next_line) && depth != 0)
+            {
+                std::istringstream func_stream(next_line);
+                std::string next_word;
+                std::string nl = "";
+
+                func_stream >> next_word;
+                nl += next_word;
+                if(next_word.find('}') != std::string::npos)
+                {
+                    depth -= 1;
+                }
+                if(next_word.find('{') != std::string::npos)
+                {
+                    depth += 1;
+                }
+                while(func_stream >> next_word  && depth != 0)
+                {
+                    if(next_word.find('}') != std::string::npos)
+                    {
+                        depth -= 1;
+                    }
+                    if(next_word.find('{') != std::string::npos)
+                    {
+                        depth += 1;
+                    }
+                    if(depth != 0)
+                    {
+                        nl = (nl + " ") + next_word;
+                    }
+
+                }
+                func_body.push_back( nl);
+                
+            }
             
+            for(auto &s : func_body) {
+                    std::cout << s << std::endl;
+                }
+            return [](){ return std::string(""); };
         }
         if (word.front() == '(')
         {
@@ -104,7 +156,7 @@ std::function<std::string(void)> recurse_and_call_line(std::string line)
                 }
             }
             inner_line = inner_line.substr(1, inner_line.size() - 2);
-            word = recurse_and_call_line(inner_line)();
+            word = recurse_and_call_line(inner_line, full_stream)();
         }
         if (word.front() == '.')
         {
@@ -113,9 +165,17 @@ std::function<std::string(void)> recurse_and_call_line(std::string line)
         if (word.front() == '"')
         {
             std::string literal = "";
-            literal += word.substr(1);
+            bool end = false;
+            if(word.back() != '"')
+            {
+                literal += word.substr(1);
+            } else {
+                literal += word.substr(1, word.size()-2);
+                end = true;
+            }
+            
             char ch;
-            while (line_stream.get(ch) && ch != '"')
+            while (line_stream.get(ch) && ch != '"' && !end)
             {
                 literal += ch;
             }
@@ -137,6 +197,6 @@ int main(int argc, char *argv[])
     std::string line;
     while (std::getline(stream, line))
     {
-        recurse_and_call_line(line)();
+        recurse_and_call_line(line, stream)();
     }
 }
