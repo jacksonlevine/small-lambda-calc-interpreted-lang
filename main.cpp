@@ -98,12 +98,13 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
             int depth = 1;
             while(std::getline(full_stream, next_line) && depth != 0)
             {
+
                 std::istringstream func_stream(next_line);
                 std::string next_word;
                 std::string nl = "";
 
                 func_stream >> next_word;
-                nl += next_word;
+                
                 if(next_word.find('}') != std::string::npos)
                 {
                     depth -= 1;
@@ -111,6 +112,10 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
                 if(next_word.find('{') != std::string::npos)
                 {
                     depth += 1;
+                }
+
+                if(depth != 0) {
+                    nl += next_word;
                 }
                 while(func_stream >> next_word  && depth != 0)
                 {
@@ -128,7 +133,11 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
                     }
 
                 }
-                func_body.push_back( nl);
+                
+               
+                    func_body.push_back( nl);
+
+                
                 
             }
             

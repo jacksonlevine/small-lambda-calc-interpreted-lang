@@ -5,7 +5,8 @@ print (concat .var (concat " is" " the" " number " (+ 0 1) " number."))
 myfunc count name {
     p (concat "There are " .count .name "s!")
     s name "cat"
-    p (concat "Name is now " .name) }
+    p (concat "Name is now " .name) 
+    }
 
 print (concat "Test" " this is")
 
