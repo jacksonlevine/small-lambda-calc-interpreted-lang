@@ -8,6 +8,9 @@
 
 std::map<std::string, std::function<std::string(std::vector<std::string>)>> funcs;
 std::map<std::string, std::string> variables;
+std::map<std::string, std::vector<std::string>> vectors;
+
+bool debug = false;
 
 std::string generate_unique_id()
 {
@@ -97,6 +100,108 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
     std::vector<std::string> current_expression;
     while (line_stream >> word)
     {
+        if (word.front() == '[')
+        {
+            std::vector<std::string> this_array;
+            std::string next_word;
+            int depth = 1;
+
+            if(word.size() > 1)
+            {
+                this_array.push_back(word.substr(1));
+            }
+
+            while(depth > 0) {
+                if(line_stream >> next_word)
+                {
+                    int oc = std::count(next_word.begin(), next_word.end(), '[');
+                    int cc = std::count(next_word.begin(), next_word.end(), ']');
+                    depth += oc - cc;
+
+                    if(next_word.find(']') != std::string::npos)
+                    {
+                        if(depth == 0)
+                        {
+
+                            size_t pos = next_word.find(']');
+                            if (pos != std::string::npos) {
+                                next_word.erase(pos, 1);
+                            }
+                        }
+                    }
+
+                    if(next_word.find('[') != std::string::npos)
+                    {
+                        if(depth == 0)
+                        {
+                            size_t pos = next_word.find('[');
+                            if (pos != std::string::npos) {
+                                next_word.erase(pos, 1);
+                            }
+                        }
+                    }
+                    this_array.push_back(next_word);
+
+                } else if(full_stream >> next_word)
+                {
+                    int oc = std::count(next_word.begin(), next_word.end(), '[');
+                    int cc = std::count(next_word.begin(), next_word.end(), ']');
+                    depth += oc - cc;
+
+                    if(next_word.find(']') != std::string::npos)
+                    {
+                        if(depth == 0)
+                        {
+
+                            size_t pos = next_word.find(']');
+                            if (pos != std::string::npos) {
+                                next_word.erase(pos, 1);
+                            }
+                        }
+                    }
+
+                    if(next_word.find('[') != std::string::npos)
+                    {
+                        if(depth == 0)
+                        {
+                            size_t pos = next_word.find('[');
+                            if (pos != std::string::npos) {
+                                next_word.erase(pos, 1);
+                            }
+                        }
+                    }
+                    this_array.push_back(next_word);
+                } else {
+                    break;
+                }
+            }
+            std::string vname = current_expression[0];
+            
+            if(debug) {
+                std::cout << "Vname: ";
+                std::cout << vname << std::endl;
+                for(auto &s : this_array)
+                {
+                    std::cout << s << std::endl;
+                }   
+            }
+            //Add the array now
+            //vectors[vname] = this_array;
+            //Add the function for it
+            funcs[vname] = [vname, this_array](std::vector<std::string> args){
+                if(args.size() > 0)
+                {
+                    return this_array[std::stoi(args[0])];
+                }else {
+                    return vname;
+                }
+                return std::string("");
+            };
+
+            return []()
+            { return std::string(""); };
+            //word = "success";
+        }
         if (word.find('{') != std::string::npos)
         {
             // std::cout << word;
@@ -176,7 +281,10 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
 
                 return last; // Return last evaluated value
             };
-            //std::cout << func_body << std::endl;
+            if(debug)
+            {
+                std::cout << func_body << std::endl;
+            }
             return []()
             { return std::string(""); };
         }

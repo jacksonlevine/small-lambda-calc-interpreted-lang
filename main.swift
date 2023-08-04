@@ -16,3 +16,9 @@ heyyo num1 num2 {
 }
 
 print (concat "2 + 3 is " (heyyo 2 3))
+
+thisvec [ yoZero yoOne yoTwo yoThree yoFour ]
+
+print (concat "The index 2 value of " thisvec " is: " (thisvec 2))
+print (thisvec 1)
+print (thisvec 0)
