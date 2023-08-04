@@ -81,6 +81,19 @@ void function_definitions()
         }
         return std::string("");
     };
+    funcs["for_in"] = [](std::vector<std::string> args)
+    {
+        std::string func_id = generate_unique_id();
+        std::string vname = args[0];
+        std::string fname = args[1];
+        for(auto &s : vectors[vname])
+        {
+            std::vector<std::string> ags;
+            ags.push_back(s);
+            funcs[fname](ags);
+        }
+        return std::string("");
+    };
     funcs["p"] = funcs["print"];
     funcs["set"] = funcs["let"];
     funcs["l"] = funcs["let"];
@@ -100,7 +113,143 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
     std::vector<std::string> current_expression;
     while (line_stream >> word)
     {
+        
+        if (word.find('{') != std::string::npos)
+        {
+            // std::cout << word;
+            // Then the whole expression has been a function declaration, we need to get all the lines
+
+            std::string func_id = generate_unique_id();
+            std::string nfname(current_expression[0]);
+            current_expression.erase(current_expression.begin());
+            std::string func_body = "";
+
+            std::string next_line;
+            int depth = 1;
+            while (std::getline(full_stream, next_line) && depth != 0)
+            {
+                std::istringstream func_stream(next_line);
+                std::string next_word;
+                std::string nl = "";
+
+                while (func_stream >> next_word && depth != 0)
+                {
+                    if (next_word.find('}') != std::string::npos)
+                    {
+                        depth -= 1;
+                    }
+                    if (next_word.find('{') != std::string::npos)
+                    {
+                        depth += 1;
+                    }
+                    if (next_word.front() == '.' && depth == 1) // We need to handle local variables differently
+                    {
+                        /*for (auto &s : current_expression)
+                        {
+                            std::cout << "Curr exp: ";
+                            std::cout << s << std::endl;
+                        }*/
+                        std::string vname = next_word.substr(1);
+                        if (vname.back() == ')')
+                        {
+                            vname = vname.substr(0, vname.size() - 1);
+                        }
+                        //std::cout << vname << std::endl;
+                        if (std::find(current_expression.begin(), current_expression.end(), vname) != current_expression.end())
+                        {
+                            next_word.insert(1, func_id);
+                        }
+                    }
+                    if (depth != 0)
+                    {
+                        nl = (nl + " ") + next_word;
+                    }
+                }
+
+                func_body += nl + '\n';
+            }
+            funcs[nfname] = [func_id, func_body, current_expression](std::vector<std::string> args)
+            {
+                int ind = 0;
+                for (auto &s : current_expression) // set up local variables for func body
+                {
+                    variables[func_id + s] = args[ind];
+                    ind += 1;
+                }
+
+                std::istringstream strm(func_body);
+                std::string line_;
+                std::string last = "";
+                while (std::getline(strm, line_))
+                {
+                    std::string s = recurse_and_call_line(line_, strm)();
+                    if(s.size() > 0) { last = s; }
+                }
+
+                for (auto &s : current_expression) // tear down local variables for func body
+                {
+                    variables.erase(func_id + s);
+                }
+
+                return last; // Return last evaluated value
+            };
+            if(debug)
+            {
+                std::cout << func_body << std::endl;
+            }
+            return [nfname]()
+            { return nfname; };
+        }
+        if (word.front() == '(')
+        {
+            int depth = std::count(word.begin(), word.end(), '(');
+            std::string inner_line = "";
+            inner_line += word;
+            while (depth != 0)
+            {
+                line_stream >> word;
+                inner_line = (inner_line + " ") + word;
+                if (word.front() == '(')
+                {
+                    depth += std::count(word.begin(), word.end(), '(');
+                }
+                if (word.back() == ')')
+                {
+                    depth -= std::count(word.begin(), word.end(), ')');
+                }
+            }
+            inner_line = inner_line.substr(1, inner_line.size() - 2);
+            word = recurse_and_call_line(inner_line, full_stream)();
+        }
+        if (word.front() == '.')
+        {
+            word = variables[word.substr(1)];
+        }
+        if (word.front() == '"')
+        {
+            std::string literal = "";
+            bool end = false;
+
+            int count = std::count(word.begin(), word.end(), '"');
+            if (count >= 2)
+            {
+                end = true;
+                literal += word.substr(1, word.size() - 2);
+            }
+            else
+            {
+                literal += word.substr(1);
+            }
+
+            char ch;
+            while (line_stream.get(ch) && ch != '"' && !end)
+            {
+                literal += ch;
+            }
+            word = literal;
+        }
         if (word.front() == '[')
+    
         {
             std::vector<std::string> this_array;
             std::string next_word;
@@ -186,155 +335,21 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
                 }   
             }
             //Add the array now
-            //vectors[vname] = this_array;
+            vectors[vname] = this_array;
             //Add the function for it
-            funcs[vname] = [vname, this_array](std::vector<std::string> args){
+            funcs[vname] = [vname](std::vector<std::string> args){
                 if(args.size() > 0)
                 {
-                    return this_array[std::stoi(args[0])];
+                    return vectors[vname][std::stoi(args[0])];
                 }else {
                     return vname;
                 }
                 return std::string("");
             };
 
-            return []()
-            { return std::string(""); };
+            return [vname]()
+            { return vname; };
             //word = "success";
-        }
-        if (word.find('{') != std::string::npos)
-        {
-            // std::cout << word;
-            // Then the whole expression has been a function declaration, we need to get all the lines
-
-            std::string func_id = generate_unique_id();
-            std::string nfname(current_expression[0]);
-            current_expression.erase(current_expression.begin());
-            std::string func_body = "";
-
-            std::string next_line;
-            int depth = 1;
-            while (std::getline(full_stream, next_line) && depth != 0)
-            {
-                std::istringstream func_stream(next_line);
-                std::string next_word;
-                std::string nl = "";
-
-                while (func_stream >> next_word && depth != 0)
-                {
-                    if (next_word.find('}') != std::string::npos)
-                    {
-                        depth -= 1;
-                    }
-                    if (next_word.find('{') != std::string::npos)
-                    {
-                        depth += 1;
-                    }
-                    if (next_word.front() == '.' && depth == 1) // We need to handle local variables differently
-                    {
-                        /*for (auto &s : current_expression)
-                        {
-                            std::cout << "Curr exp: ";
-                            std::cout << s << std::endl;
-                        }*/
-                        std::string vname = next_word.substr(1);
-                        if (vname.back() == ')')
-                        {
-                            vname = vname.substr(0, vname.size() - 1);
-                        }
-                        //std::cout << vname << std::endl;
-                        if (std::find(current_expression.begin(), current_expression.end(), vname) != current_expression.end())
-                        {
-                            next_word.insert(1, func_id);
-                        }
-                    }
-                    if (depth != 0)
-                    {
-                        nl = (nl + " ") + next_word;
-                    }
-                }
-
-                func_body += nl + '\n';
-            }
-            funcs[nfname] = [func_id, func_body, current_expression](std::vector<std::string> args)
-            {
-                int ind = 0;
-                for (auto &s : current_expression) // set up local variables for func body
-                {
-                    variables[func_id + s] = args[ind];
-                    ind += 1;
-                }
-
-                std::istringstream strm(func_body);
-                std::string line_;
-                std::string last = "";
-                while (std::getline(strm, line_))
-                {
-                    std::string s = recurse_and_call_line(line_, strm)();
-                    if(s.size() > 0) { last = s; }
-                }
-
-                for (auto &s : current_expression) // tear down local variables for func body
-                {
-                    variables.erase(func_id + s);
-                }
-
-                return last; // Return last evaluated value
-            };
-            if(debug)
-            {
-                std::cout << func_body << std::endl;
-            }
-            return []()
-            { return std::string(""); };
-        }
-        if (word.front() == '(')
-        {
-            int depth = std::count(word.begin(), word.end(), '(');
-            std::string inner_line = "";
-            inner_line += word;
-            while (depth != 0)
-            {
-                line_stream >> word;
-                inner_line = (inner_line + " ") + word;
-                if (word.front() == '(')
-                {
-                    depth += std::count(word.begin(), word.end(), '(');
-                }
-                if (word.back() == ')')
-                {
-                    depth -= std::count(word.begin(), word.end(), ')');
-                }
-            }
-            inner_line = inner_line.substr(1, inner_line.size() - 2);
-            word = recurse_and_call_line(inner_line, full_stream)();
-        }
-        if (word.front() == '.')
-        {
-            word = variables[word.substr(1)];
-        }
-        if (word.front() == '"')
-        {
-            std::string literal = "";
-            bool end = false;
-
-            int count = std::count(word.begin(), word.end(), '"');
-            if (count >= 2)
-            {
-                end = true;
-                literal += word.substr(1, word.size() - 2);
-            }
-            else
-            {
-                literal += word.substr(1);
-            }
-
-            char ch;
-            while (line_stream.get(ch) && ch != '"' && !end)
-            {
-                literal += ch;
-            }
-            word = literal;
         }
         current_expression.push_back(word);
     }
