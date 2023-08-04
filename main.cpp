@@ -124,7 +124,7 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
                 {
                     depth += 1;
                 }
-                if(next_word.front() == '.') //We need to handle local variables differently
+                if(next_word.front() == '.' && depth == 1) //We need to handle local variables differently
                 {
                     next_word.insert(1, func_id);
                 }
@@ -143,7 +143,7 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
                     {
                         depth += 1;
                     }
-                    if(next_word.front() == '.') //We need to handle local variables differently
+                    if(next_word.front() == '.' && depth == 1) //We need to handle local variables differently
                     {
                         next_word.insert(1, func_id);
                     }
