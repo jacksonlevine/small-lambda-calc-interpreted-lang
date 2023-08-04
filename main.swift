@@ -17,10 +17,9 @@ heyyo num1 num2 {
 
 print (concat "2 + 3 is " (heyyo 2 3))
 
-thisvec [ "orange" "red" "green" "blue" ]
 
-print (concat "The index 2 value of " thisvec " is: " (thisvec 2))
-print (thisvec 1)
-print (thisvec 0)
+s name Yo
+s other 10
+thisvec [ .name .other "green" "blue" ]
 
-for_in thisvec print
+forin thisvec print

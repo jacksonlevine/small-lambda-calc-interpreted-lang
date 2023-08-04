@@ -81,7 +81,7 @@ void function_definitions()
         }
         return std::string("");
     };
-    funcs["for_in"] = [](std::vector<std::string> args)
+    funcs["forin"] = [](std::vector<std::string> args)
     {
         std::string func_id = generate_unique_id();
         std::string vname = args[0];
@@ -100,6 +100,70 @@ void function_definitions()
     funcs["le"] = funcs["let"];
     funcs["se"] = funcs["let"];
     funcs["s"] = funcs["let"];
+}
+std::function<std::string(void)> recurse_and_call_line(std::string line, std::istringstream &full_stream);
+std::string eval_parentheses(std::string word, std::istringstream& line_stream, std::istringstream& full_stream)
+{
+    int depth = std::count(word.begin(), word.end(), '(');
+            std::string inner_line = "";
+            inner_line += word;
+            while (depth != 0)
+            {
+                line_stream >> word;
+                inner_line = (inner_line + " ") + word;
+                if (word.front() == '(')
+                {
+                    depth += std::count(word.begin(), word.end(), '(');
+                }
+                if (word.back() == ')')
+                {
+                    depth -= std::count(word.begin(), word.end(), ')');
+                }
+            }
+            inner_line = inner_line.substr(1, inner_line.size() - 2);
+            word = recurse_and_call_line(inner_line, full_stream)();
+    return word;
+}
+std::string eval_quotes(std::string word, std::istringstream& line_stream)
+{
+    std::string literal = "";
+            bool end = false;
+
+            int count = std::count(word.begin(), word.end(), '"');
+            if (count >= 2)
+            {
+                end = true;
+                literal += word.substr(1, word.size() - 2);
+            }
+            else
+            {
+                literal += word.substr(1);
+            }
+
+            char ch;
+            while (line_stream.get(ch) && ch != '"' && !end)
+            {
+                literal += ch;
+            }
+            word = literal;
+    return word;
+}
+
+std::string eval_to_literal(std::string word, std::istringstream& line_stream, std::istringstream& full_stream)
+{
+    if (word.front() == '(')
+    {
+        word = eval_parentheses(word, line_stream, full_stream);
+    }
+    if (word.front() == '.')
+    {
+        word = variables[word.substr(1)];
+    }
+    if (word.front() == '"')
+    {
+        word = eval_quotes(word, line_stream);
+    }
+    return word;
 }
 std::function<std::string(void)> recurse_and_call_line(std::string line, std::istringstream &full_stream)
 {
@@ -200,54 +264,7 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
             return [nfname]()
             { return nfname; };
         }
-        if (word.front() == '(')
-        {
-            int depth = std::count(word.begin(), word.end(), '(');
-            std::string inner_line = "";
-            inner_line += word;
-            while (depth != 0)
-            {
-                line_stream >> word;
-                inner_line = (inner_line + " ") + word;
-                if (word.front() == '(')
-                {
-                    depth += std::count(word.begin(), word.end(), '(');
-                }
-                if (word.back() == ')')
-                {
-                    depth -= std::count(word.begin(), word.end(), ')');
-                }
-            }
-            inner_line = inner_line.substr(1, inner_line.size() - 2);
-            word = recurse_and_call_line(inner_line, full_stream)();
-        }
-        if (word.front() == '.')
-        {
-            word = variables[word.substr(1)];
-        }
-        if (word.front() == '"')
-        {
-            std::string literal = "";
-            bool end = false;
-
-            int count = std::count(word.begin(), word.end(), '"');
-            if (count >= 2)
-            {
-                end = true;
-                literal += word.substr(1, word.size() - 2);
-            }
-            else
-            {
-                literal += word.substr(1);
-            }
-
-            char ch;
-            while (line_stream.get(ch) && ch != '"' && !end)
-            {
-                literal += ch;
-            }
-            word = literal;
-        }
+        word = eval_to_literal(word, line_stream, full_stream);
         if (word.front() == '[')
     
         {
@@ -257,7 +274,10 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
 
             if(word.size() > 1)
             {
-                this_array.push_back(word.substr(1));
+                word = word.substr(1);
+
+                word = eval_to_literal(word, line_stream, full_stream);
+                this_array.push_back(word);
             }
 
             while(depth > 0) {
@@ -289,6 +309,7 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
                             }
                         }
                     }
+                    next_word = eval_to_literal(next_word, line_stream, full_stream);
                     this_array.push_back(next_word);
 
                 } else if(full_stream >> next_word)
@@ -319,6 +340,7 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
                             }
                         }
                     }
+                    next_word = eval_to_literal(next_word, line_stream, full_stream);
                     this_array.push_back(next_word);
                 } else {
                     break;
