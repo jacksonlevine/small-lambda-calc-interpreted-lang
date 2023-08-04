@@ -4,9 +4,19 @@
 #include <map>
 #include <string>
 #include <functional>
+#include <chrono>
 
 std::map<std::string, std::function<std::string(std::vector<std::string>)>> funcs;
 std::map<std::string, std::string> variables;
+
+std::string generate_unique_id() {
+    auto now = std::chrono::high_resolution_clock::now();
+    auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count();
+
+    std::stringstream ss;
+    ss << nanos;
+    return ss.str();
+}
 
 void function_definitions()
 {
@@ -74,77 +84,104 @@ void function_definitions()
     funcs["se"] = funcs["let"];
     funcs["s"] = funcs["let"];
 }
-std::function<std::string(void)> recurse_and_call_line(std::string line, std::istringstream& full_stream)
+std::function<std::string(void)> recurse_and_call_line(std::string line, std::istringstream &full_stream)
 {
-    if(line.size() < 1)
+    if (line.size() < 1)
     {
-        return [](){ return std::string(""); };
+        return []()
+        { return std::string(""); };
     }
     std::istringstream line_stream(line);
     std::string word;
     std::vector<std::string> current_expression;
     while (line_stream >> word)
     {
-        if(word.find('{') != std::string::npos)
+        if (word.find('{') != std::string::npos)
         {
-            //std::cout << word;
-            //Then the whole expression has been a function declaration, we need to get all the lines
+            // std::cout << word;
+            // Then the whole expression has been a function declaration, we need to get all the lines
 
+            std::string func_id = generate_unique_id();
             std::string nfname(current_expression[0]);
             current_expression.erase(current_expression.begin());
-            std::vector<std::string> func_body;
+            std::string func_body = "";
 
             std::string next_line;
             int depth = 1;
-            while(std::getline(full_stream, next_line) && depth != 0)
+            while (std::getline(full_stream, next_line) && depth != 0)
             {
-
                 std::istringstream func_stream(next_line);
                 std::string next_word;
                 std::string nl = "";
 
                 func_stream >> next_word;
-                
-                if(next_word.find('}') != std::string::npos)
+
+                if (next_word.find('}') != std::string::npos)
                 {
                     depth -= 1;
                 }
-                if(next_word.find('{') != std::string::npos)
+                if (next_word.find('{') != std::string::npos)
                 {
                     depth += 1;
                 }
+                if(next_word.front() == '.') //We need to handle local variables differently
+                {
+                    next_word.insert(1, func_id);
+                }
 
-                if(depth != 0) {
+                if (depth != 0)
+                {
                     nl += next_word;
                 }
-                while(func_stream >> next_word  && depth != 0)
+                while (func_stream >> next_word && depth != 0)
                 {
-                    if(next_word.find('}') != std::string::npos)
+                    if (next_word.find('}') != std::string::npos)
                     {
                         depth -= 1;
                     }
-                    if(next_word.find('{') != std::string::npos)
+                    if (next_word.find('{') != std::string::npos)
                     {
                         depth += 1;
                     }
-                    if(depth != 0)
+                    if(next_word.front() == '.') //We need to handle local variables differently
+                    {
+                        next_word.insert(1, func_id);
+                    }
+                    if (depth != 0)
                     {
                         nl = (nl + " ") + next_word;
                     }
-
                 }
-                
-               
-                    func_body.push_back( nl);
 
-                
-                
+                func_body += nl + '\n';
             }
-            
-            for(auto &s : func_body) {
-                    std::cout << s << std::endl;
+            funcs[nfname] = [func_id, func_body, current_expression](std::vector<std::string> args) {
+
+                int ind = 0;
+                for(auto& s : current_expression) //set up local variables for func body
+                {
+                    variables[func_id + s] = args[ind];
+                    ind += 1;
                 }
-            return [](){ return std::string(""); };
+
+                std::istringstream strm(func_body);
+                std::string line_;
+                while(std::getline(strm, line_))
+                {
+                    recurse_and_call_line(line_, strm)();
+                }
+
+                for(auto& s : current_expression) //tear down local variables for func body
+                {
+                    variables.erase(func_id + s);
+                }
+                
+                return std::string("success"); //Support return values later
+
+            };
+            //std::cout << func_body << std::endl;
+            return []()
+            { return std::string(""); };
         }
         if (word.front() == '(')
         {
@@ -177,18 +214,16 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
             bool end = false;
 
             int count = std::count(word.begin(), word.end(), '"');
-            if(count >= 2)
+            if (count >= 2)
             {
                 end = true;
                 literal += word.substr(1, word.size() - 2);
-            } else {
+            }
+            else
+            {
                 literal += word.substr(1);
             }
 
-
-            
-
-            
             char ch;
             while (line_stream.get(ch) && ch != '"' && !end)
             {
@@ -200,7 +235,8 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
     }
     std::string fname(current_expression[0]);
     current_expression.erase(current_expression.begin());
-    return [fname, current_expression](){ return funcs[fname](current_expression); };
+    return [fname, current_expression]()
+    { return funcs[fname](current_expression); };
 }
 int main(int argc, char *argv[])
 {
