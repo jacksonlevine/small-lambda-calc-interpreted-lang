@@ -9,7 +9,8 @@
 std::map<std::string, std::function<std::string(std::vector<std::string>)>> funcs;
 std::map<std::string, std::string> variables;
 
-std::string generate_unique_id() {
+std::string generate_unique_id()
+{
     auto now = std::chrono::high_resolution_clock::now();
     auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count();
 
@@ -114,25 +115,6 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
                 std::string next_word;
                 std::string nl = "";
 
-                func_stream >> next_word;
-
-                if (next_word.find('}') != std::string::npos)
-                {
-                    depth -= 1;
-                }
-                if (next_word.find('{') != std::string::npos)
-                {
-                    depth += 1;
-                }
-                if(next_word.front() == '.' && depth == 1) //We need to handle local variables differently
-                {
-                    next_word.insert(1, func_id);
-                }
-
-                if (depth != 0)
-                {
-                    nl += next_word;
-                }
                 while (func_stream >> next_word && depth != 0)
                 {
                     if (next_word.find('}') != std::string::npos)
@@ -143,9 +125,23 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
                     {
                         depth += 1;
                     }
-                    if(next_word.front() == '.' && depth == 1) //We need to handle local variables differently
+                    if (next_word.front() == '.' && depth == 1) // We need to handle local variables differently
                     {
-                        next_word.insert(1, func_id);
+                        /*for (auto &s : current_expression)
+                        {
+                            std::cout << "Curr exp: ";
+                            std::cout << s << std::endl;
+                        }*/
+                        std::string vname = next_word.substr(1);
+                        if (vname.back() == ')')
+                        {
+                            vname = vname.substr(0, vname.size() - 1);
+                        }
+                        //std::cout << vname << std::endl;
+                        if (std::find(current_expression.begin(), current_expression.end(), vname) != current_expression.end())
+                        {
+                            next_word.insert(1, func_id);
+                        }
                     }
                     if (depth != 0)
                     {
@@ -155,10 +151,10 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
 
                 func_body += nl + '\n';
             }
-            funcs[nfname] = [func_id, func_body, current_expression](std::vector<std::string> args) {
-
+            funcs[nfname] = [func_id, func_body, current_expression](std::vector<std::string> args)
+            {
                 int ind = 0;
-                for(auto& s : current_expression) //set up local variables for func body
+                for (auto &s : current_expression) // set up local variables for func body
                 {
                     variables[func_id + s] = args[ind];
                     ind += 1;
@@ -166,18 +162,19 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
 
                 std::istringstream strm(func_body);
                 std::string line_;
-                while(std::getline(strm, line_))
+                std::string last = "";
+                while (std::getline(strm, line_))
                 {
-                    recurse_and_call_line(line_, strm)();
+                    std::string s = recurse_and_call_line(line_, strm)();
+                    if(s.size() > 0) { last = s; }
                 }
 
-                for(auto& s : current_expression) //tear down local variables for func body
+                for (auto &s : current_expression) // tear down local variables for func body
                 {
                     variables.erase(func_id + s);
                 }
-                
-                return std::string("success"); //Support return values later
 
+                return last; // Return last evaluated value
             };
             //std::cout << func_body << std::endl;
             return []()

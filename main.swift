@@ -10,3 +10,9 @@ myfunc count name facts {
 }
 
 myfunc 12 "dog" "facts"
+
+heyyo num1 num2 {
+    + .num1 .num2
+}
+
+print (concat "2 + 3 is " (heyyo 2 3))
