@@ -94,6 +94,25 @@ void function_definitions()
         }
         return std::string("");
     };
+    funcs["append"] = [](std::vector<std::string> args)
+    {
+        std::string item = args[0];
+        std::string vname = args[1];
+        vectors[vname].push_back(item);
+        return std::string("");
+    };
+    funcs["prepend"] = [](std::vector<std::string> args)
+    {
+        std::string item = args[0];
+        std::string vname = args[1];
+        vectors[vname].insert(vectors[vname].begin(), item);
+        return std::string("");
+    };
+    funcs["size"] = [](std::vector<std::string> args)
+    {
+        std::string vname = args[0];
+        return std::to_string(vectors[vname].size());
+    };
     funcs["p"] = funcs["print"];
     funcs["set"] = funcs["let"];
     funcs["l"] = funcs["let"];
@@ -310,7 +329,11 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
                         }
                     }
                     next_word = eval_to_literal(next_word, line_stream, full_stream);
-                    this_array.push_back(next_word);
+                    if(next_word.size() > 0)
+                    {
+                        this_array.push_back(next_word);
+                    }
+                    
 
                 } else if(full_stream >> next_word)
                 {
@@ -341,7 +364,10 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
                         }
                     }
                     next_word = eval_to_literal(next_word, line_stream, full_stream);
-                    this_array.push_back(next_word);
+                    if(next_word.size() > 0)
+                    {
+                        this_array.push_back(next_word);
+                    }
                 } else {
                     break;
                 }

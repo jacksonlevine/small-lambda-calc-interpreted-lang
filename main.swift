@@ -23,3 +23,12 @@ s other 10
 thisvec [ .name .other "green" "blue" ]
 
 forin thisvec print
+
+print (concat "Size of thisvec: " (size thisvec))
+
+append .name thisvec
+append .other thisvec
+
+forin thisvec print
+
+print (concat "Size of thisvec: " (size thisvec))
