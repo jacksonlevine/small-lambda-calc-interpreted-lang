@@ -1,0 +1,20 @@
+There are 12 dogs!
+That's facts yo!
+Jack ain't Jack
+2 + 3 is 5
+Yo
+10
+green
+blue
+Size of thisvec: 4
+Yo
+10
+green
+blue
+Yo
+10
+Size of thisvec: 6
+0
+hey
+yo
+2

@@ -1,34 +1,15 @@
-myfunc count name facts {
-    p (concat "There are " .count " " .name "s!")
-    p (concat "That's " .facts " yo!")
-
-    ofunc name yo {
-        p (concat .name " ain't " .yo)
-    }
-
-    ofunc "Jack" "Jack"
+newadd vecname item {
+    append .item .vecname
+    print (concat "Appended " .item " to " .vecname)
 }
 
-myfunc 12 "dog" "facts"
+heyyo [ ]
 
-heyyo num1 num2 {
-    + .num1 .num2
-}
+newadd heyyo 10
+newadd heyyo blue
+newadd heyyo hey
+newadd heyyo test!
 
-print (concat "2 + 3 is " (heyyo 2 3))
+forin heyyo print
 
-
-s name Yo
-s other 10
-thisvec [ .name .other "green" "blue" ]
-
-forin thisvec print
-
-print (concat "Size of thisvec: " (size thisvec))
-
-append .name thisvec
-append .other thisvec
-
-forin thisvec print
-
-print (concat "Size of thisvec: " (size thisvec))
+print (size heyyo)
