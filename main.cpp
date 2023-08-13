@@ -11,7 +11,7 @@ std::map<std::string, std::string> variables;
 std::map<std::string, std::vector<std::string>> vectors;
 
 // #define DEBUGGING
-// #define PARENTHESES_DEBUGGING
+//#define PARENTHESES_DEBUGGING
 
 std::string generate_unique_id()
 {
@@ -292,9 +292,20 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
                     }
                     if (depth == 0)
                     {
-                        while (func_stream >> next_word)
+                        int args_count = 0;
+                        while (func_stream >> next_word && args_count < current_expression.size())
                         {
                             (additional_args += " ") += next_word;
+                            args_count += 1;
+                        }
+                        if(args_count = current_expression.size() )
+                        {
+                            std::string remainder = "";
+                            while(func_stream >> next_word)
+                            {
+                                (remainder += " ") += next_word;
+                            }
+                            recurse_and_call_line(remainder, full_stream);
                         }
                     }
                 }
@@ -306,7 +317,6 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
 
 #ifdef PARENTHESES_DEBUGGING
             std::cout << "ADDITIONAL ARGS: " << additional_args << std::endl;
-            std::cout << "Whats left of line: " << line << std::endl;
 #endif
             funcs[nfname] = [func_id, func_body, current_expression](std::vector<std::string> args)
             {

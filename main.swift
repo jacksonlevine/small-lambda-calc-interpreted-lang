@@ -29,3 +29,10 @@ print (
 print ( funco a { 
     return (concat "hey" .a)
  } 8)
+
+
+print (
+    bingo x y z {
+        return .x ", " .y ", " .z
+    } 8 5 1
+)
