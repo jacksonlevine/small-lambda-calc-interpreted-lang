@@ -290,14 +290,19 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
             std::vector<std::string> this_array;
             std::string next_word;
             int depth = 1;
-
-            if(word.size() > 1)
+            if(word.back() == ']')
             {
-                word = word.substr(1);
+                depth = 0;
+            } else {
+                if(word.size() > 1)
+                {
+                    word = word.substr(1);
 
-                word = eval_to_literal(word, line_stream, full_stream);
-                this_array.push_back(word);
+                    word = eval_to_literal(word, line_stream, full_stream);
+                    this_array.push_back(word);
+                }
             }
+            
 
             while(depth > 0) {
                 if(line_stream >> next_word)

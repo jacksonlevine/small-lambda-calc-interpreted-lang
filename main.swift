@@ -3,7 +3,7 @@ newadd vecname item {
     print (concat "Appended " .item " to " .vecname)
 }
 
-heyyo [ ]
+heyyo []
 
 newadd heyyo 10
 newadd heyyo blue
@@ -13,3 +13,9 @@ newadd heyyo test!
 forin heyyo print
 
 print (size heyyo)
+
+funco x {
+    print (concat .x " is a very important thing.")
+}
+
+forin heyyo funco
