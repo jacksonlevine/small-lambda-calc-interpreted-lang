@@ -10,7 +10,7 @@ std::map<std::string, std::function<std::string(std::vector<std::string>)>> func
 std::map<std::string, std::string> variables;
 std::map<std::string, std::vector<std::string>> vectors;
 
-bool debug = false;
+bool debug = true;
 
 std::string generate_unique_id()
 {
@@ -33,6 +33,7 @@ void function_definitions()
         }
         return result;
     };
+    funcs["return"] = funcs["concat"];
     funcs["print"] = [](std::vector<std::string> args)
     {
         for (auto &s : args)
@@ -51,7 +52,7 @@ void function_definitions()
         {
             variables[args[0]] = std::string(args[1]);
         }
-        return std::string("");
+        return variables[args[0]];
     };
     funcs["+"] = [](std::vector<std::string> args)
     {
@@ -128,7 +129,10 @@ std::string eval_parentheses(std::string word, std::istringstream& line_stream, 
             inner_line += word;
             while (depth != 0)
             {
-                line_stream >> word;
+                if (line_stream >> word) {
+                } else {
+                    full_stream >> word;
+                }
                 inner_line = (inner_line + " ") + word;
                 if (word.front() == '(')
                 {
@@ -209,8 +213,19 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
 
             std::string next_line;
             int depth = 1;
-            while (std::getline(full_stream, next_line) && depth != 0)
+            while (depth != 0)
             {
+                if(std::getline(line_stream, next_line))
+                {
+                    if(debug)
+                    {
+                        std::cout << "Using rest of line to start this function off:" << next_line << std::endl;
+                    }
+
+                }
+                else if(std::getline(full_stream, next_line)) {
+
+                }
                 std::istringstream func_stream(next_line);
                 std::string next_word;
                 std::string nl = "";
@@ -219,11 +234,12 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
                 {
                     if (next_word.find('}') != std::string::npos)
                     {
-                        depth -= 1;
+                        depth -= std::count(next_word.begin(), next_word.end(), '}');
+                        
                     }
                     if (next_word.find('{') != std::string::npos)
                     {
-                        depth += 1;
+                        depth += std::count(next_word.begin(), next_word.end(), '{');
                     }
                     if (next_word.front() == '.' && depth == 1) // We need to handle local variables differently
                     {
@@ -243,13 +259,24 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
                             next_word.insert(1, func_id);
                         }
                     }
-                    if (depth != 0)
+
+                    if (depth == 0)
+                    {
+                        next_word.erase(std::remove(next_word.begin(), next_word.end(), '}'), next_word.end());
+                        next_word.erase(std::remove(next_word.begin(), next_word.end(), '{'), next_word.end());
+                        next_word.erase(std::remove(next_word.begin(), next_word.end(), '\n'), next_word.end());
+                    }
+                    if(next_word.size() > 0)
                     {
                         nl = (nl + " ") + next_word;
                     }
+                    
                 }
-
-                func_body += nl + '\n';
+                if(nl.size() > 0)
+                {
+                    func_body += nl + '\n';
+                }
+                
             }
             funcs[nfname] = [func_id, func_body, current_expression](std::vector<std::string> args)
             {
@@ -278,7 +305,8 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
             };
             if(debug)
             {
-                std::cout << func_body << std::endl;
+                std::cout << "Function body definition:" << std::endl;
+                std::cout << func_body << "(END)" <<std::endl;
             }
             return [nfname]()
             { return nfname; };

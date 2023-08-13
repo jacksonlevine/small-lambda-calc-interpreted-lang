@@ -1,7 +1,6 @@
 newadd vecname item {
     append .item .vecname
-    print (concat "Appended " .item " to " .vecname)
-}
+    print (concat "Appended " .item " to " .vecname)}
 
 heyyo []
 
@@ -19,3 +18,10 @@ funco x {
 }
 
 forin heyyo funco
+
+print (
+    concat 
+    3
+    4
+    2
+)
