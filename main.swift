@@ -25,3 +25,7 @@ print (
     4
     2
 )
+
+print ( funco a { 
+    return (concat "hey" .a)
+ } 8)
