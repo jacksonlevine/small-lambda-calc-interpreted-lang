@@ -11,7 +11,9 @@ std::map<std::string, std::string> variables;
 std::map<std::string, std::vector<std::string>> vectors;
 
 // #define DEBUGGING
-//#define PARENTHESES_DEBUGGING
+// #define PARENTHESES_DEBUGGING
+// #define FUNCTION_DEBUGGING
+// #define IF_STATEMENT_DEBUGGING
 
 std::string generate_unique_id()
 {
@@ -31,6 +33,44 @@ void function_definitions()
         for (auto &s : args)
         {
             result += s;
+        }
+        return result;
+    };
+    funcs[">"] = [](std::vector<std::string> args)
+    {
+        std::string result = "false";
+        bool floats = false;
+        for (auto &s : args)
+        {
+            if (s.find('.') != std::string::npos)
+                floats = true;
+        }
+        if (floats)
+        {
+            result = std::stof(args[0]) > std::stof(args[1]) ? "true" : "false";
+        }
+        else
+        {
+            result = std::stoi(args[0]) > std::stoi(args[1]) ? "true" : "false";
+        }
+        return result;
+    };
+    funcs["<"] = [](std::vector<std::string> args)
+    {
+        std::string result = "false";
+        bool floats = false;
+        for (auto &s : args)
+        {
+            if (s.find('.') != std::string::npos)
+                floats = true;
+        }
+        if (floats)
+        {
+            result = std::stof(args[0]) < std::stof(args[1]) ? "true" : "false";
+        }
+        else
+        {
+            result = std::stoi(args[0]) < std::stoi(args[1]) ? "true" : "false";
         }
         return result;
     };
@@ -207,6 +247,80 @@ std::string eval_to_literal(std::string word, std::istringstream &line_stream, s
     }
     return word;
 }
+std::string collect_raw_brace_innards(std::istringstream &line_stream, std::istringstream &full_stream)
+{
+
+    std::string func_body = "";
+
+    std::string next_line;
+    int depth = 1;
+    while (depth != 0)
+    {
+        if (std::getline(line_stream, next_line))
+        {
+        }
+        else if (std::getline(full_stream, next_line))
+        {
+        }
+        std::istringstream func_stream(next_line);
+        std::string next_word;
+        std::string nl = "";
+        while (func_stream >> next_word && depth != 0)
+        {
+            int lastbit = 0;
+            std::string corrected_last_word = "";
+            if (next_word.find('}') != std::string::npos)
+            {
+                depth -= std::count(next_word.begin(), next_word.end(), '}');
+                corrected_last_word = next_word.substr(0, next_word.find('}'));
+                lastbit = 1;
+            }
+            if (next_word.find('{') != std::string::npos)
+            {
+                depth += std::count(next_word.begin(), next_word.end(), '{');
+            }
+
+            if (depth == 0)
+            {
+                next_word.erase(std::remove(next_word.begin(), next_word.end(), '}'), next_word.end());
+                next_word.erase(std::remove(next_word.begin(), next_word.end(), '{'), next_word.end());
+                next_word.erase(std::remove(next_word.begin(), next_word.end(), '\n'), next_word.end());
+            }
+
+            if (next_word.size() > 0)
+            {
+                nl = (nl + " ") + next_word;
+            }
+        }
+        if (nl.size() > 0)
+        {
+            func_body += nl + '\n';
+        }
+    }
+
+    return func_body;
+}
+
+std::function<std::string()> func_from_block_body(std::string func_body)
+{
+    return [func_body]()
+    {
+        std::istringstream strm(func_body);
+        std::string line_;
+        std::string last = "";
+        while (std::getline(strm, line_))
+        {
+            std::string s = recurse_and_call_line(line_, strm)();
+            if (s.size() > 0)
+            {
+                last = s;
+            }
+        }
+
+        return last; // Return last evaluated value, or empty string
+    };
+}
+
 std::function<std::string(void)> recurse_and_call_line(std::string line, std::istringstream &full_stream)
 {
     if (line.size() < 1)
@@ -219,6 +333,69 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
     std::vector<std::string> current_expression;
     while (line_stream >> word)
     {
+        if (word.find("if") != std::string::npos)
+        {
+#ifdef IF_STATEMENT_DEBUGGING
+            std::cout << "IF STATEMENT DETECTED: CURRENT WORD: " << word << std::endl;
+#endif
+            std::string exp = "";
+            std::string w;
+
+            if (word.find('(') != std::string::npos)
+            {
+                exp += "( ";
+            }
+            bool block_start_found = false;
+            while (!block_start_found)
+            {
+                if (line_stream >> w) // Take from either line or full till found
+                {
+                }
+                else if (full_stream >> w)
+                {
+                }
+
+                if (w.find('{') == std::string::npos)
+                {
+                    (exp += " ") += w;
+                }
+                else
+                {
+                    std::string w2(w);
+                    w2.erase(std::remove(w2.begin(), w2.end(), '{'), w2.end()); // If the paren and brace touch, remove brace here
+                    (exp += " ") += w2;
+                    block_start_found = true; // exit the while
+                }
+            }
+#ifdef IF_STATEMENT_DEBUGGING
+            std::cout << "EXP TO EVALUATE: " << exp << std::endl;
+#endif
+            // Got the expression in exp. Collect brace innards away from rest of parser...
+            // collect_raw_brace_innards goes in with an assumed starting depth of 1 so we dont need the first brace here
+            std::string block_body = collect_raw_brace_innards(line_stream, full_stream);
+#ifdef IF_STATEMENT_DEBUGGING
+            std::cout << "BLOCK BODY: " << std::endl
+                      << block_body << std::endl;
+#endif
+            // Evaluate exp:
+            std::string res = recurse_and_call_line(exp, full_stream)();
+#ifdef IF_STATEMENT_DEBUGGING
+            std::cout << "RESULT OF EVALUATING EXPRESSION: " << res << std::endl;
+#endif
+
+            if (res == "true")
+            {
+                // if the statement evaluates to true then the block is executed as normal code wherever it is
+                word = func_from_block_body(block_body)();
+#ifdef IF_STATEMENT_DEBUGGING
+                std::cout << "RESULT OF EVALUATING BLOCK: " << word << std::endl;
+#endif
+            }
+            else
+            {
+                word = "";
+            }
+        }
 
         if (word.find('{') != std::string::npos)
         {
@@ -267,7 +444,7 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
                         next_word.erase(std::remove(next_word.begin(), next_word.end(), '{'), next_word.end());
                         next_word.erase(std::remove(next_word.begin(), next_word.end(), '\n'), next_word.end());
                     }
-                    if (next_word.front() == '.' && (depth == 1 || lastbit)) // We need to handle local variables differently
+                    if (next_word.front() == '.' && (depth > 0 || lastbit)) // We need to handle local variables differently
                     {
                         /*for (auto &s : current_expression)
                         {
@@ -298,10 +475,10 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
                             (additional_args += " ") += next_word;
                             args_count += 1;
                         }
-                        if(args_count = current_expression.size() )
+                        if (args_count = current_expression.size())
                         {
                             std::string remainder = "";
-                            while(func_stream >> next_word)
+                            while (func_stream >> next_word)
                             {
                                 (remainder += " ") += next_word;
                             }
@@ -489,8 +666,25 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
     }
     std::string fname(current_expression[0]);
     current_expression.erase(current_expression.begin());
-    return [fname, current_expression]()
-    { return funcs[fname](current_expression); };
+
+    if (funcs.find(fname) != funcs.end())
+    {
+#ifdef FUNCTION_DEBUGGING
+        std::cout << "CALLING FUNCTION: " << fname << " ";
+        for (auto &s : current_expression)
+        {
+            std::cout << s << " ";
+        }
+        std::cout << std::endl;
+#endif
+        return [fname, current_expression]()
+        { return funcs[fname](current_expression); };
+    }
+    else
+    {
+        return [fname]()
+        { return fname; };
+    }
 }
 int main(int argc, char *argv[])
 {
