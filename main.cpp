@@ -10,8 +10,8 @@ std::map<std::string, std::function<std::string(std::vector<std::string>)>> func
 std::map<std::string, std::string> variables;
 std::map<std::string, std::vector<std::string>> vectors;
 
-//#define DEBUGGING
-//#define PARENTHESES_DEBUGGING
+// #define DEBUGGING
+// #define PARENTHESES_DEBUGGING
 
 std::string generate_unique_id()
 {
@@ -34,7 +34,7 @@ void function_definitions()
         }
         return result;
     };
-    funcs["return"] = funcs["concat"]; //because with 1 arg, it means "evaluate to this", and we return last eval
+    funcs["return"] = funcs["concat"]; // because with 1 arg, it means "evaluate to this", and we return last eval
     funcs["print"] = [](std::vector<std::string> args)
     {
         for (auto &s : args)
@@ -123,7 +123,7 @@ void function_definitions()
     funcs["s"] = funcs["let"];
 }
 std::function<std::string(void)> recurse_and_call_line(std::string line, std::istringstream &full_stream);
-std::string eval_parentheses(std::string& word, std::istringstream &line_stream, std::istringstream &full_stream)
+std::string eval_parentheses(std::string &word, std::istringstream &line_stream, std::istringstream &full_stream)
 {
     int depth = std::count(word.begin(), word.end(), '(');
     std::string inner_line = "";
@@ -147,25 +147,22 @@ std::string eval_parentheses(std::string& word, std::istringstream &line_stream,
             depth -= std::count(word.begin(), word.end(), ')');
         }
     }
-    #ifdef PARENTHESES_DEBUGGING
+#ifdef PARENTHESES_DEBUGGING
     std::cout << "INNER LINE: " << inner_line << std::endl;
-    #endif
+#endif
     inner_line = inner_line.substr(1, inner_line.size() - 2);
-
-
 
     word = recurse_and_call_line(inner_line, full_stream)();
 
+#ifdef PARENTHESES_DEBUGGING
+    std::cout << "EVAL WORD FROM LINE IS: \"" << word << "\"." << std::endl;
+#endif
 
-    #ifdef PARENTHESES_DEBUGGING
-        std::cout << "EVAL WORD FROM LINE IS: \"" << word << "\"." << std::endl;
-    #endif
-
-    if(funcs.find(word.substr(0, word.find(' '))) != funcs.end()) {
+    if (funcs.find(word.substr(0, word.find(' '))) != funcs.end())
+    {
 
         word = recurse_and_call_line(word, full_stream)();
     }
-
 
     return word;
 }
@@ -240,9 +237,9 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
             {
                 if (std::getline(line_stream, next_line))
                 {
-                    #ifdef DEBUGGING
-                        std::cout << "Using rest of line to start this function off:" << next_line << std::endl;
-                    #endif
+#ifdef DEBUGGING
+                    std::cout << "Using rest of line to start this function off:" << next_line << std::endl;
+#endif
                 }
                 else if (std::getline(full_stream, next_line))
                 {
@@ -264,7 +261,7 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
                     {
                         depth += std::count(next_word.begin(), next_word.end(), '{');
                     }
-                                        if (depth == 0)
+                    if (depth == 0)
                     {
                         next_word.erase(std::remove(next_word.begin(), next_word.end(), '}'), next_word.end());
                         next_word.erase(std::remove(next_word.begin(), next_word.end(), '{'), next_word.end());
@@ -289,14 +286,13 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
                         }
                     }
 
-
                     if (next_word.size() > 0)
                     {
                         nl = (nl + " ") + next_word;
                     }
-                    if(depth == 0)
+                    if (depth == 0)
                     {
-                        while(func_stream >> next_word)
+                        while (func_stream >> next_word)
                         {
                             (additional_args += " ") += next_word;
                         }
@@ -307,11 +303,11 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
                     func_body += nl + '\n';
                 }
             }
-            
-            #ifdef PARENTHESES_DEBUGGING
+
+#ifdef PARENTHESES_DEBUGGING
             std::cout << "ADDITIONAL ARGS: " << additional_args << std::endl;
             std::cout << "Whats left of line: " << line << std::endl;
-            #endif
+#endif
             funcs[nfname] = [func_id, func_body, current_expression](std::vector<std::string> args)
             {
                 int ind = 0;
@@ -340,10 +336,10 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
 
                 return last; // Return last evaluated value
             };
-            #ifdef DEBUGGING
-                std::cout << "Function body definition:" << std::endl;
-                std::cout << func_body << "(END)" << std::endl;
-            #endif
+#ifdef DEBUGGING
+            std::cout << "Function body definition:" << std::endl;
+            std::cout << func_body << "(END)" << std::endl;
+#endif
             return [nfname, additional_args]()
             { return nfname + additional_args; };
         }
@@ -450,15 +446,15 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
             }
             std::string vname = current_expression[0];
 
-            #ifdef DEBUGGING
+#ifdef DEBUGGING
 
-                std::cout << "Vname: ";
-                std::cout << vname << std::endl;
-                for (auto &s : this_array)
-                {
-                    std::cout << s << std::endl;
-                }
-            #endif
+            std::cout << "Vname: ";
+            std::cout << vname << std::endl;
+            for (auto &s : this_array)
+            {
+                std::cout << s << std::endl;
+            }
+#endif
             // Add the array now
             vectors[vname] = this_array;
             // Add the function for it
