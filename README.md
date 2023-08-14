@@ -1,8 +1,6 @@
-## Simple Lambda-Calculus-like Interpreted Language
+## Simple Interpreted Language 
 
-I wanted to write dynamically-loaded scripts in Haskell that my C++ program could run, but there was no such possibility, which sparked the idea of trying to write a simple functional language, going back more or less to the roots of Lambda Calculus as a dead-simple poly-morphic answer to computing, which is just functions, functions, functions.
-
-This is barely the start of the things I'd like to add, will be updating with new features soon. I am not a professional or expert so this is merely for my own fun.
+Interpreted language, just to see if I can make it.
 
 This has also probably been made very similarly by many people, I am not claiming ownership of this idea.
 
@@ -56,7 +54,7 @@ s x +
 
 ### Function definitions
 
-```
+```swift
 thisfunc x y z {
     print (concat "You've given me " x ", " y ", and " z)
 }
@@ -69,7 +67,7 @@ This outputs "You've given me 8, 2, and 3".
 
 ### Vectors/arrays
 
-```
+```swift
 heyyo []
 l x 1
 l y 3
@@ -88,11 +86,25 @@ heyyo2 [ 2 3 5 10 "test" ]
 
 Continuing on the last code, we can put:
 
-```
+```swift
 forin heyyo2 print
 ```
 
 The "forin" function in this case goes through the vector/array and calls print on every element.
+
+### if statements
+
+Arbitrarily defining a function named "funco" here, with x, y, and z parameters:
+
+```swift
+funco x y z {
+    if (< (+ x y z) 2) {
+        print "The sum of x y and z is less than 2"
+    }
+}
+```
+
+If the expression following "if" evaluates to true, the code in the brace-block will be executed.
 
 ### print function (any # of args)
 
@@ -117,6 +129,8 @@ print (concat "The number of " .fruit_type "s you have is" .fruit_amt)
 Combines strings.
 
 ### + function (any # of args)
+
+There are also other functions for other operators, such as `(/ 10 5)` (2) or `(% 9 3)` (0)
 
 Evaluates to 4: 
 
