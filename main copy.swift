@@ -15,8 +15,6 @@ newadd heyyo 0
 
 forin heyyo print
 
-print (size heyyo)
-
 funco x {
     if (> .x 3) { print (concat .x " is a very important thing.") }
 }

@@ -55,6 +55,18 @@ void function_definitions()
         }
         return result;
     };
+    funcs["repeat"] = [](std::vector<std::string> args)
+    {
+        int count = std::stoi(args[0]);
+        std::string funcname = args[1];
+        for(int i = 0; i < count; i++)
+        {
+            std::vector<std::string> _;
+            funcs[funcname](_);
+        }
+        return std::string("success");
+    };
+    funcs["loop"] = funcs["repeat"];
     funcs["<"] = [](std::vector<std::string> args)
     {
         std::string result = "false";
@@ -161,6 +173,51 @@ void function_definitions()
     funcs["le"] = funcs["let"];
     funcs["se"] = funcs["let"];
     funcs["s"] = funcs["let"];
+    funcs["/"] = [](std::vector<std::string> args) {
+        bool floats = false;
+        for (auto &s : args)
+        {
+            if (s.find('.') != std::string::npos)
+                floats = true;
+        }
+        if (floats)
+        {
+            return std::to_string(std::stof(args[0]) / std::stof(args[1]));
+        }
+        else
+        {
+            return std::to_string(std::stoi(args[0]) / std::stoi(args[1]));
+        }
+        return std::string("");
+    };
+    funcs["%"] = [](std::vector<std::string> args) {
+        bool floats = false;
+        for (auto &s : args)
+        {
+            if (s.find('.') != std::string::npos)
+                floats = true;
+        }
+        if (floats)
+        {
+            return std::to_string((int)std::stof(args[0]) % (int)std::stof(args[1]));
+        }
+        else
+        {
+            return std::to_string(std::stoi(args[0]) % std::stoi(args[1]));
+        }
+        return std::string("");
+    };
+    funcs["not"] = [](std::vector<std::string> args) {
+        std::string result = "";
+        if(args[0] == "0" || args[0] == "false")
+        {
+            result = "true";
+        } else {
+            result = "false";
+        }
+        return result;
+    };
+    funcs["!"] = funcs["not"];
 }
 std::function<std::string(void)> recurse_and_call_line(std::string line, std::istringstream &full_stream);
 std::string eval_parentheses(std::string &word, std::istringstream &line_stream, std::istringstream &full_stream)
@@ -383,7 +440,7 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
             std::cout << "RESULT OF EVALUATING EXPRESSION: " << res << std::endl;
 #endif
 
-            if (res == "true")
+            if (res != "0" && res != "false")
             {
                 // if the statement evaluates to true then the block is executed as normal code wherever it is
                 word = func_from_block_body(block_body)();
