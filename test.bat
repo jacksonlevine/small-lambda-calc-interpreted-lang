@@ -1,6 +1,6 @@
 @echo off
 echo Running test...
-y.exe test.swift > output.txt
+boris.exe test.boris > output.txt
 
 echo Comparing outputs...
 fc /b output.txt expected_output.txt > nul

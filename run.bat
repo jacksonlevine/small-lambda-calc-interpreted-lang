@@ -1,3 +1,3 @@
 @echo off
-y.exe main.swift
+boris.exe main.boris
 pause

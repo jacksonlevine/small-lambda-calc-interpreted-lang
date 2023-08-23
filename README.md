@@ -7,7 +7,7 @@ This code prints every number 0-5000 that is evenly divisible by 3:
 ```
 array []
 
-let x 10
+let x 0
 
 _ { 
     append .x array
@@ -25,7 +25,7 @@ forin array print_filtered
 
 ```
 
-The syntax is function definitions and function calls. For example, let/set is a function that creates or reassigns a global variable. 
+Boris' syntax is function definitions and function calls. For example, let/set is a function that defines or reassigns a variable. It is similar to Common Lisp in some ways, though this is obviously more of a toy language.
 
 All values are strings, and can be treated as all the same thing, except in functions like + where the number is parsed as a float or int. (In all of these cases, if one argument is a float they are all treated as floats.)
 
@@ -33,7 +33,7 @@ Function definitions can have parameter variables, scoped only to that function 
 
 Any series of words followed by { } is a function definition, UNLESS it begins with `if (a function call that evals to truthy or falsey)`, then it is an if-statement.
 
-Arrays are c++ vectors under the hood and are declared as such: `name_you_want []` for an empty array, or `name_you_want [ 3, .a_variable, 5, 1, "A string" ]`
+Arrays are c++ vectors under the hood and are declared as such: `name_you_want []` for an empty array, or `name_you_want [ 3, .a_variable, 5, 1, "A string" ]`. There are functions `append <value> <array_name>` and `prepend <value> <array_name>`.
 
 The available built-in functions will have documentation soon, but for now are viewable in "function_definitions" function in main.cpp. They include: "+", "%", "/", "concat", "print", "repeat", and "forin".
 

@@ -457,7 +457,7 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
         if (word.find('{') != std::string::npos)
         {
             // std::cout << word;
-            // Then the whole expression has been a function declaration, we need to get all the lines
+            // Then the whole expression so far has been a function declaration, we need to get all the lines
 
             std::string func_id = generate_unique_id();
             std::string nfname(current_expression[0]);
@@ -514,7 +514,7 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
                             vname = vname.substr(0, vname.size() - 1);
                         }
                         // std::cout << vname << std::endl;
-                        if (std::find(current_expression.begin(), current_expression.end(), vname) != current_expression.end())
+                        if (std::find(current_expression.begin(), current_expression.end(), vname) != current_expression.end() && depth == 1)
                         {
                             next_word.insert(1, func_id);
                         }
