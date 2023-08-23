@@ -1,11 +1,12 @@
 array []
 
 let x 10
+
 _ { 
     append .x array
-    set x (+ .x 10)
+    set x (+ .x 1)
 }
-repeat 500 _
+repeat 5000 _
 
 print_filtered x {
     if (! (% .x 3)) {
