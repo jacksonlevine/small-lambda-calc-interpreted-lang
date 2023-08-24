@@ -14,6 +14,7 @@ _ {
     append .x array
     set x (+ .x 1)
 }
+
 repeat 5000 _
 
 print_filtered x {
