@@ -27,6 +27,19 @@ forin array print_filtered
 
 ```
 
+## Installation / Using Boris:
+
+1. Download 'boris.exe' from this repo.
+
+2. Put boris.exe in your working directory (Or, put the path to boris.exe in your systems PATH env variable.)
+
+3. Create a file with the extension `.boris`, for example `main.boris`
+
+4. After writing Boris code, run your file using shell command `boris.exe main.boris`
+
+5. That's all!
+
+
 Boris' syntax is function definitions and function calls. For example, let/set is a function that defines or reassigns a variable. It is similar to Common Lisp in some ways, though this is obviously more of a toy language.
 
 All values are strings, and can be treated as all the same thing, except in functions like + where the number is parsed as a float or int. (In all of these cases, if one argument is a float they are all treated as floats.)
