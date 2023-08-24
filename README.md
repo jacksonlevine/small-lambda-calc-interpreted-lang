@@ -52,7 +52,7 @@ The available built-in functions will have documentation soon, but for now their
 
 Thank you!
 
-### MIT License:
+### License:
 
 Copyright 2023 Jackson Levine
 
