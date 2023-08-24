@@ -40,7 +40,7 @@ forin array print_filtered
 5. That's all!
 
 
-Boris' syntax is function definitions and function calls. For example, let/set is a function that defines or reassigns a variable. It is similar to Common Lisp in some ways, though this is obviously more of a toy language.
+Boris' syntax is function definitions and function calls. For example, let/set is a function that defines or reassigns a variable. It is similar to Common Lisp in some ways.
 
 All values are strings, and can be treated as all the same thing, except in functions like + where the number is parsed as a float or int. (In all of these cases, if one argument is a float they are all treated as floats.)
 
