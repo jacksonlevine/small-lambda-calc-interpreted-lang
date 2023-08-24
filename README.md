@@ -1,4 +1,5 @@
-## Boris: Simple Interpreted Language
+# Boris
+## A Simple Interpreted Language
 
 Made as simply a fun challenge for myself, not intended for wide usage.
 
@@ -16,9 +17,9 @@ _ {
 repeat 5000 _
 
 print_filtered x {
-    if (! (% .x 3)) {
+    if (! (% .x 3)) <
         print (concat .x " is evenly divisible by 3")
-    }
+    >
 }
 
 forin array print_filtered
@@ -31,11 +32,11 @@ All values are strings, and can be treated as all the same thing, except in func
 
 Function definitions can have parameter variables, scoped only to that function body (Parameters can have the same name as global variables, local version will be used first if it exists).
 
-Any series of words followed by { } is a function definition, UNLESS it begins with `if (a function call that evals to truthy or falsey)`, then it is an if-statement.
+Any series of words followed by { } is a function definition. "If" statements use < > angle brackets to contain blocks.
 
 Arrays are c++ vectors under the hood and are declared as such: `name_you_want []` for an empty array, or `name_you_want [ 3, .a_variable, 5, 1, "A string" ]`. There are functions `append <value> <array_name>` and `prepend <value> <array_name>`.
 
-The available built-in functions will have documentation soon, but for now are viewable in "function_definitions" function in main.cpp. They include: "+", "%", "/", "concat", "print", "repeat", and "forin".
+The available built-in functions will have documentation soon, but for now their definitions and implementations are publicly visible in the "function_definitions" function in main.cpp. They include: "+", "%", "/", "concat", "print", "repeat", and "forin".
 
 Thank you!
 

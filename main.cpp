@@ -10,9 +10,9 @@ std::map<std::string, std::function<std::string(std::vector<std::string>)>> func
 std::map<std::string, std::string> variables;
 std::map<std::string, std::vector<std::string>> vectors;
 
-// #define DEBUGGING
+//#define DEBUGGING
 // #define PARENTHESES_DEBUGGING
-// #define FUNCTION_DEBUGGING
+//#define FUNCTION_DEBUGGING
 // #define IF_STATEMENT_DEBUGGING
 
 std::string generate_unique_id()
@@ -326,21 +326,21 @@ std::string collect_raw_brace_innards(std::istringstream &line_stream, std::istr
         {
             int lastbit = 0;
             std::string corrected_last_word = "";
-            if (next_word.find('}') != std::string::npos)
+            if (next_word.find('>') != std::string::npos)
             {
-                depth -= std::count(next_word.begin(), next_word.end(), '}');
-                corrected_last_word = next_word.substr(0, next_word.find('}'));
+                depth -= std::count(next_word.begin(), next_word.end(), '>');
+                corrected_last_word = next_word.substr(0, next_word.find('>'));
                 lastbit = 1;
             }
-            if (next_word.find('{') != std::string::npos)
+            if (next_word.find('<') != std::string::npos)
             {
-                depth += std::count(next_word.begin(), next_word.end(), '{');
+                depth += std::count(next_word.begin(), next_word.end(), '<');
             }
 
             if (depth == 0)
             {
-                next_word.erase(std::remove(next_word.begin(), next_word.end(), '}'), next_word.end());
-                next_word.erase(std::remove(next_word.begin(), next_word.end(), '{'), next_word.end());
+                next_word.erase(std::remove(next_word.begin(), next_word.end(), '>'), next_word.end());
+                next_word.erase(std::remove(next_word.begin(), next_word.end(), '<'), next_word.end());
                 next_word.erase(std::remove(next_word.begin(), next_word.end(), '\n'), next_word.end());
             }
 
@@ -378,6 +378,18 @@ std::function<std::string()> func_from_block_body(std::string func_body)
     };
 }
 
+int count_substr_occurrences(const std::string& text, const std::string& substring) {
+    int count = 0;
+    size_t pos = 0;
+
+    while ((pos = text.find(substring, pos)) != std::string::npos) {
+        ++count;
+        pos += substring.length();
+    }
+
+    return count;
+}
+
 std::function<std::string(void)> recurse_and_call_line(std::string line, std::istringstream &full_stream)
 {
     if (line.size() < 1)
@@ -412,14 +424,14 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
                 {
                 }
 
-                if (w.find('{') == std::string::npos)
+                if (w.find('<') == std::string::npos)
                 {
                     (exp += " ") += w;
                 }
                 else
                 {
                     std::string w2(w);
-                    w2.erase(std::remove(w2.begin(), w2.end(), '{'), w2.end()); // If the paren and brace touch, remove brace here
+                    w2.erase(std::remove(w2.begin(), w2.end(), '<'), w2.end()); // If the paren and brace touch, remove brace here
                     (exp += " ") += w2;
                     block_start_found = true; // exit the while
                 }
@@ -485,6 +497,9 @@ std::function<std::string(void)> recurse_and_call_line(std::string line, std::is
                 {
                     int lastbit = 0;
                     std::string corrected_last_word = "";
+
+
+
                     if (next_word.find('}') != std::string::npos)
                     {
                         depth -= std::count(next_word.begin(), next_word.end(), '}');

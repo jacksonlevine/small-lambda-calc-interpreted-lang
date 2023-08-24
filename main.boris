@@ -1,6 +1,6 @@
 array []
 
-let x 10
+let x 0
 
 _ { 
     append .x array
@@ -9,9 +9,9 @@ _ {
 repeat 5000 _
 
 print_filtered x {
-    if (! (% .x 3)) {
+    if (! (% .x 3)) <
         print (concat .x " is evenly divisible by 3")
-    }
+    >
 }
 
 forin array print_filtered
