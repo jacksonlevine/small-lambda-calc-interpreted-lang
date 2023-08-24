@@ -37,8 +37,6 @@ forin array print_filtered
 
 4. After writing Boris code, run your file using shell command `boris.exe main.boris`
 
-5. That's all!
-
 
 Boris' syntax is function definitions and function calls. For example, let/set is a function that defines or reassigns a variable. It is similar to Common Lisp in some ways.
 
