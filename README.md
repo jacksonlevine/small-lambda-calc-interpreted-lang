@@ -1,7 +1,7 @@
 # Boris
 ## A Simple Interpreted Language
 
-Made as simply a fun challenge for myself, not intended for wide usage.
+![Boris lang logo](./borislogo.png)
 
 This code prints every number 0-5000 that is evenly divisible by 3:
 
