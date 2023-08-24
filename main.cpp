@@ -137,7 +137,6 @@ void function_definitions()
     };
     funcs["forin"] = [](std::vector<std::string> args)
     {
-        std::string func_id = generate_unique_id();
         std::string vname = args[0];
         std::string fname = args[1];
         for (auto &s : vectors[vname])
